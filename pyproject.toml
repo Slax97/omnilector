@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnilector"
+version = "1.0.0"
+description = "Extracts the text of any file (images, PDF, Office, OpenDocument, HTML, email, Outlook, EPUB, ZIP) picking the right OCR for each situation. Runs on CPU."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Slax97", email = "saul.laxp@gmail.com" }]
+keywords = ["ocr", "rapidocr", "kraken", "trocr", "easyocr", "tesseract", "handwriting", "pdf", "docx", "xlsx", "layout", "tables"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Text Processing",
+    "Typing :: Typed",
+]
+# Each dependency up to its next major version: a major one can change what we use (PyMuPDF 2.0 broke
+# the text of tables). The bound is raised after the tests pass with it.
+# OpenCV without a GUI (headless): it needs no libGL on servers and it is the one RapidOCR asks for
+dependencies = [
+    "numpy>=1.24,<3",
+    "pillow>=10.0,<14",
+    "opencv-python-headless>=4.8,<6",
+    "rapidocr>=3.0,<4",
+    "python-bidi>=0.4,<1",  # RapidOCR needs it to read Arabic, Persian and Urdu (right-to-left order)
+    "onnxruntime>=1.17,<2",
+    "pymupdf>=1.24,<3",
+    "typer>=0.9,<1",
+    "charset-normalizer>=3.0,<4",
+]
+
+[project.optional-dependencies]
+handwritten = ["transformers>=4.30,<5", "torch>=2.0,<3", "sentencepiece<1", "kraken>=7.1,<8", "huggingface_hub<2"]  # TrOCR (English) + kraken
+office = ["python-docx>=1.1,<2", "openpyxl>=3.1,<4", "python-pptx>=1.0,<2"]
+tesseract = ["pytesseract>=0.3.10,<1"]
+easyocr = ["easyocr>=1.7,<2"]
+heic = ["pillow-heif>=0.16,<2"]
+msg = ["olefile>=0.46,<1"]  # Outlook .msg (and recognizing .doc/.xls/.ppt by their content)
+layout = ["rapid-layout>=1.2,<2", "rapid-table>=3.0,<4"]  # zones, reading order and tables on pages with OCR
+# onnxruntime-gpu is not in [all]: installed next to onnxruntime they clash
+gpu = ["onnxruntime-gpu>=1.17,<2"]
+all = ["omnilector[handwritten,office,tesseract,easyocr,heic,msg,layout]"]
+dev = ["pytest>=8.0", "ruff>=0.16"]
+
+[project.urls]
+Homepage = "https://github.com/Slax97/omnilector"
+Source = "https://github.com/Slax97/omnilector"
+Issues = "https://github.com/Slax97/omnilector/issues"
+
+[project.scripts]
+omnilector = "omnilector.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+omnilector = ["py.typed"]  # the library's types, for the editor and mypy of whoever uses it
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that need heavy models or network",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.format]
+exclude = ["*.md"]  # the documentation examples have hand-aligned comments
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "PIE", "RUF", "BLE", "S110", "S112", "DTZ001", "PYI034"]
+ignore = [
+    "E501",  # long lines: the formatter splits code; long strings and comments stay
+    "RUF001", "RUF002", "RUF003",  # letters of other scripts (Cyrillic, Greek...) on purpose: it is an OCR
+    "B905",  # zip() without strict: stops at the shortest sequence, as always
+]

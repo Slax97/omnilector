@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+# virtual environments
+.venv/
+venv/
+# pytest / linters
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+# models (downloaded automatically)
+*.onnx
+# downloaded or generated test data (recreated when the tests run): never committed
+tests/data/
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
